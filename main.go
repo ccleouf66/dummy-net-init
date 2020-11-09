@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/vishvananda/netlink"
 )
@@ -14,8 +14,7 @@ func main() {
 	// Check if the dummy link already exist
 	nl, err := netlink.LinkList()
 	if err != nil {
-		fmt.Printf("Error getting link list: %s\n", err)
-		return
+		log.Fatalf("Error getting link list: %s\n", err)
 	}
 	for _, l := range nl {
 		if l.Type() == "dummy" {
@@ -24,24 +23,24 @@ func main() {
 				// Get link addresses
 				laddr, err := netlink.AddrList(l, 0)
 				if err != nil {
-					fmt.Printf("Error getting addresses for link %s: %s\n", l.Attrs().Name, err)
-					return
+					log.Fatalf("Error getting addresses for link %s: %s\n", l.Attrs().Name, err)
 				}
 				// Check all addresses
 				for _, addr := range laddr {
 					a, err := netlink.ParseAddr(intAddr)
 					if err != nil {
-						fmt.Printf("Error parsing addresses %s: \n%s\n", intAddr, err)
+						log.Fatalf("Error parsing addresses %s: \n%s\n", intAddr, err)
 					}
 					if addr.IPNet.IP.To4().Equal(a.IP) {
-						fmt.Printf("Interface %s with address %s already exist.\n", intName, intAddr)
+						log.Printf("Interface %s with address %s already exist.\n", intName, intAddr)
 						return
+
 					}
 				}
 				// Interface exist, add new address
 				err = AddDummyAddr(intAddr, l.(*netlink.Dummy))
 				if err != nil {
-					fmt.Printf("\n%v\n", err)
+					log.Fatalf("%v\n", err)
 				}
 				return
 			}
@@ -56,14 +55,13 @@ func main() {
 	// Create dummy interface
 	err = netlink.LinkAdd(dummyInt)
 	if err != nil {
-		fmt.Printf("Could not create %s interface, are you priviliged ?:\n%v\n", la.Name, err)
-		return
+		log.Fatalf("Could not create %s interface, are you priviliged ?:\n%v\n", la.Name, err)
 	}
 
 	// Add address to dummy interface
 	err = AddDummyAddr(intAddr, dummyInt)
 	if err != nil {
-		fmt.Printf("\n%v\n", err)
+		log.Fatalf("%v\n", err)
 	}
 }
 
@@ -71,12 +69,12 @@ func main() {
 func AddDummyAddr(addr string, dummy *netlink.Dummy) (err error) {
 	a, err := netlink.ParseAddr(addr)
 	if err != nil {
-		fmt.Printf("Could not create addr %s\n", addr)
+		log.Printf("Could not create addr %s\n", addr)
 		return err
 	}
 	err = netlink.AddrAdd(dummy, a)
 	if err != nil {
-		fmt.Printf("Could not add address %s to interface %s\n", addr, dummy.Attrs().Name)
+		log.Printf("Could not add address %s to interface %s\n", addr, dummy.Attrs().Name)
 		return err
 	}
 	return nil
