@@ -1,15 +1,25 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"os"
 
 	"github.com/vishvananda/netlink"
 )
 
-var intName string = "s3-lb"
-var intAddr string = "169.254.20.10/24"
-
 func main() {
+	fmt.Printf("Dummy-int-init\n")
+	fmt.Printf("Contact: cyril.connan@gmail.com\n")
+	fmt.Printf("Project: https://github.com/ccleouf66/dummy-net-init\n")
+	fmt.Printf("---\n\n")
+
+	if len(os.Args) != 3 {
+		log.Fatalf("Bad arguments number. \nUsage:\n   %s interface-names interface-ip", os.Args[0])
+	}
+
+	var intName string = os.Args[1]
+	var intAddr string = os.Args[2]
 
 	// Check if the dummy link already exist
 	nl, err := netlink.LinkList()
